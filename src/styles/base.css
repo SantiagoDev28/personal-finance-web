@@ -39,6 +39,6 @@ p {
 }
 
 :focus-visible {
-  outline: 1px solid var(--color-income);
+  outline: 1px solid var(--color-button);
   outline-offset: 2px;
 }

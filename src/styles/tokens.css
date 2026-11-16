@@ -4,6 +4,29 @@
 */
 
 :root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-background: #0b0f14;
+  --color-sidebar: #0b0f14;
+  --color-surface: #141a23;
+  --color-surface-header: #1a2230;
+  --color-border: #243044;
+  --color-border-strong: #334155;
+  --color-text: #e8eef6;
+  --color-text-muted: #93a0b4;
+  --color-income: #3ddc97;
+  --color-expense: #f2a394;
+  --color-on-accent: #ffffff;
+  --color-hover: #1a2330;
+  --color-button: #2f6bff;
+  --color-button-hover: #2558d6;
+  --color-slice-1: #f2a394;
+  --color-slice-2: #2f6bff;
+  --color-slice-3: #8fb4ff;
+  --color-slice-4: #c9a59a;
+  --color-slice-5: #7e8ca3;
+}
+
 [data-theme='light'] {
   color-scheme: light;
   --color-background: #f4f5f7;
@@ -14,30 +37,17 @@
   --color-border-strong: #c5c9d1;
   --color-text: #121417;
   --color-text-muted: #6a707a;
-  --color-income: #2f6bff;
-  --color-expense: #4d6ec4;
+  --color-income: #178a4c;
+  --color-expense: #e07a6a;
   --color-on-accent: #ffffff;
   --color-hover: #f3f5f8;
   --color-button: #2f6bff;
   --color-button-hover: #2558d6;
-}
-
-[data-theme='dark'] {
-  color-scheme: dark;
-  --color-background: #000000;
-  --color-sidebar: #0a0a0a;
-  --color-surface: #0a0a0a;
-  --color-surface-header: #080808;
-  --color-border: #1a1a1a;
-  --color-border-strong: #333333;
-  --color-text: #ffffff;
-  --color-text-muted: #8a8f98;
-  --color-income: #2f6bff;
-  --color-expense: #7fa8ff;
-  --color-on-accent: #ffffff;
-  --color-hover: #0e0e0e;
-  --color-button: #2f6bff;
-  --color-button-hover: #2558d6;
+  --color-slice-1: #e07a6a;
+  --color-slice-2: #2f6bff;
+  --color-slice-3: #8eaae6;
+  --color-slice-4: #c98478;
+  --color-slice-5: #8a8f98;
 }
 
 :root {
@@ -64,9 +74,10 @@
   --space-md: 1rem;
   --space-lg: 1.5rem;
   --space-xl: 2.5rem;
-  --radius-control: 6px;
-  --radius-card: 8px;
-  --sidebar-width: 15rem;
+  --radius-control: 8px;
+  --radius-card: 14px;
+  --content-max: 80rem;
+  --sidebar-width: 12rem;
+  --sidebar-collapsed: 4.5rem;
   --header-height: 4rem;
-  --content-max: 72rem;
 }

@@ -51,6 +51,43 @@ export function seriesFrom(transactions: Transaction[], now = new Date()): Month
   })
 }
 
+export type CategorySpend = {
+  category: string
+  amount: number
+}
+
+export function categoryExpenses(transactions: Transaction[], now = new Date()): CategorySpend[] {
+  const current = bogotaYearMonth(now)
+  const key = `${current.year}-${String(current.month).padStart(2, '0')}`
+  const totals = new Map<string, number>()
+
+  for (const transaction of transactions) {
+    if (transaction.type !== 'expense' || transaction.date.slice(0, 7) !== key) continue
+    const category = transaction.category.trim() || 'Sin categoría'
+    totals.set(category, (totals.get(category) ?? 0) + transaction.amount)
+  }
+
+  return [...totals.entries()]
+    .filter(([, amount]) => amount > 0)
+    .map(([category, amount]) => ({ category, amount }))
+    .sort((a, b) => b.amount - a.amount || a.category.localeCompare(b.category, 'es'))
+}
+
+export function monthTotals(transactions: Transaction[], now = new Date()) {
+  const current = bogotaYearMonth(now)
+  const key = `${current.year}-${String(current.month).padStart(2, '0')}`
+  let income = 0
+  let expense = 0
+
+  for (const transaction of transactions) {
+    if (transaction.date.slice(0, 7) !== key) continue
+    if (transaction.type === 'income') income += transaction.amount
+    else expense += transaction.amount
+  }
+
+  return { income, expense, balance: income - expense }
+}
+
 export function balanceDelta(transactions: Transaction[], now = new Date()) {
   const [previousKey, currentKey] = lastMonths(2, now)
   let previous = 0
