@@ -1,0 +1,72 @@
+/*
+  Tonos y medidas del front. Los componentes solo usan estas variables.
+  Claro es el valor inicial; oscuro reemplaza los mismos nombres.
+*/
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --color-background: #f4f5f7;
+  --color-sidebar: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-header: #f7f8fa;
+  --color-border: #e4e6eb;
+  --color-border-strong: #c5c9d1;
+  --color-text: #121417;
+  --color-text-muted: #6a707a;
+  --color-income: #2f6bff;
+  --color-expense: #4d6ec4;
+  --color-on-accent: #ffffff;
+  --color-hover: #f3f5f8;
+  --color-button: #2f6bff;
+  --color-button-hover: #2558d6;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-background: #000000;
+  --color-sidebar: #0a0a0a;
+  --color-surface: #0a0a0a;
+  --color-surface-header: #080808;
+  --color-border: #1a1a1a;
+  --color-border-strong: #333333;
+  --color-text: #ffffff;
+  --color-text-muted: #8a8f98;
+  --color-income: #2f6bff;
+  --color-expense: #7fa8ff;
+  --color-on-accent: #ffffff;
+  --color-hover: #0e0e0e;
+  --color-button: #2f6bff;
+  --color-button-hover: #2558d6;
+}
+
+:root {
+  --font-family: 'Inter', 'Segoe UI', sans-serif;
+  --size-display: 3.5rem;
+  --line-display: 4rem;
+  --size-display-mobile: 2.375rem;
+  --line-display-mobile: 2.75rem;
+  --size-headline: 1.5rem;
+  --line-headline: 2rem;
+  --size-headline-sm: 1.125rem;
+  --line-headline-sm: 1.625rem;
+  --size-body: 0.9375rem;
+  --line-body: 1.5rem;
+  --size-body-sm: 0.8125rem;
+  --line-body-sm: 1.25rem;
+  --size-metric: 1.75rem;
+  --line-metric: 2rem;
+  --size-label: 0.6875rem;
+  --line-label: 0.875rem;
+  --tracking-label: 0.08em;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --sidebar-width: 15rem;
+  --header-height: 4rem;
+  --content-max: 72rem;
+}

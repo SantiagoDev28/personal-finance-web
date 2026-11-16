@@ -1,0 +1,133 @@
+.shell {
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  background: var(--color-sidebar);
+  border-right: 1px solid var(--color-border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--size-label);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-sm) 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 2.75rem;
+  padding: 0.75rem var(--space-lg);
+  border-left: 2px solid transparent;
+  color: var(--color-text-muted);
+  transition:
+    color 120ms linear,
+    border-color 120ms linear;
+}
+
+.nav-item .icon {
+  color: var(--color-expense);
+}
+
+.nav-item:hover {
+  color: var(--color-text);
+}
+
+.nav-item--current {
+  border-left-color: var(--color-income);
+  color: var(--color-text);
+}
+
+.nav-item--current .icon {
+  color: var(--color-income);
+}
+
+.shell-main {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 var(--space-xl);
+  background: var(--color-sidebar);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.content {
+  padding: var(--space-xl);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    position: static;
+    width: auto;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .nav {
+    flex-direction: row;
+    padding: 0;
+  }
+
+  .nav-item {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    padding: 0.85rem var(--space-md);
+  }
+
+  .nav-item--current {
+    border-bottom-color: var(--color-income);
+  }
+
+  .shell-main {
+    margin-left: 0;
+  }
+
+  .topbar,
+  .content {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
+  .content {
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-xl);
+  }
+}
