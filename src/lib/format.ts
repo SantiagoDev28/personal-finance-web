@@ -25,8 +25,13 @@ export function bogotaYearMonth(now = new Date()) {
   return { year: Number(year), month: Number(month) }
 }
 
-export function exerciseLabel(now = new Date()) {
-  return `Ejercicio ${bogotaYearMonth(now).year}`
+export function currentMonthTitle(now = new Date()) {
+  const label = new Intl.DateTimeFormat('es-CO', {
+    timeZone: 'America/Bogota',
+    month: 'long',
+    year: 'numeric',
+  }).format(now)
+  return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
 export function formatMoney(value: number) {

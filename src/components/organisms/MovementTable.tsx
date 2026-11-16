@@ -12,7 +12,7 @@ export function MovementTable({
   error: string | null
 }) {
   return (
-    <section className="card ledger" id="movimientos" aria-label="Movimientos">
+    <section className="card ledger" aria-label="Movimientos">
       <div className="ledger-head">
         <div>
           <h2>Últimos movimientos</h2>

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type IconName = 'pulse' | 'list' | 'sun' | 'moon' | 'down' | 'up'
+export type IconName = 'pulse' | 'list' | 'sun' | 'moon' | 'down' | 'up' | 'left' | 'right'
 
 const glyphs: Record<IconName, ReactNode> = {
   pulse: (
@@ -34,6 +34,8 @@ const glyphs: Record<IconName, ReactNode> = {
       <path d="M7 10l5-5 5 5" />
     </>
   ),
+  left: <path d="M14 6l-6 6 6 6" />,
+  right: <path d="M10 6l6 6-6 6" />,
 }
 
 export function Icon({ name }: { name: IconName }) {

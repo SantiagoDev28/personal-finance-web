@@ -1,68 +1,67 @@
-import { formatMoney } from '../../lib/format.ts'
-import type { MonthPoint } from '../../lib/series.ts'
+import { Amount } from '../atoms/Amount.tsx'
 import { Label } from '../atoms/Label.tsx'
 
-export function FlowChart({ points, loading }: { points: MonthPoint[]; loading: boolean }) {
-  const max = Math.max(...points.flatMap((point) => [point.income, point.expense]), 0)
-  const income = points.reduce((sum, point) => sum + point.income, 0)
-  const expense = points.reduce((sum, point) => sum + point.expense, 0)
+export function FlowChart({
+  income,
+  expense,
+  loading,
+  error,
+}: {
+  income?: number
+  expense?: number
+  loading: boolean
+  error: string | null
+}) {
+  const max = Math.max(income ?? 0, expense ?? 0, 0)
 
   return (
-    <section className="card chart" aria-label="Ingresos y gastos por mes">
+    <section className="card chart" aria-label="Ingresos y gastos del mes">
       <div className="chart-head">
         <div>
           <h2>Ingresos y gastos</h2>
-          <p>Últimos 6 meses</p>
-        </div>
-        <div className="legend">
-          <span>
-            <i className="swatch swatch--income" aria-hidden="true" />
-            <Label>Ingresos</Label>
-          </span>
-          <span>
-            <i className="swatch swatch--expense" aria-hidden="true" />
-            <Label>Gastos</Label>
-          </span>
+          <p>Mes actual</p>
         </div>
       </div>
 
       {loading ? (
-        <p className="ledger-empty">Cargando el periodo.</p>
+        <p className="ledger-empty">Cargando el mes.</p>
+      ) : error ? (
+        <p className="ledger-empty">No se pudo mostrar el mes.</p>
       ) : max === 0 ? (
-        <p className="ledger-empty">Todavía no hay movimientos en este periodo.</p>
+        <p className="ledger-empty">Todavía no hay movimientos en este mes.</p>
       ) : (
-        <div className="chart-plot">
-          {points.map((point) => (
-            <div key={point.key} className={point.current ? 'chart-col chart-col--current' : 'chart-col'}>
-              <div className="chart-bars">
-                <div
-                  className="chart-bar chart-bar--income"
-                  style={{ height: `${barHeight(point.income, max)}%` }}
-                  title={`Ingresos ${formatMoney(point.income)}`}
-                />
-                <div
-                  className="chart-bar chart-bar--expense"
-                  style={{ height: `${barHeight(point.expense, max)}%` }}
-                  title={`Gastos ${formatMoney(point.expense)}`}
-                />
-              </div>
-              <Label>{point.label}</Label>
-            </div>
-          ))}
+        <div className="compare">
+          <CompareRow label="Ingresos" value={income ?? 0} max={max} tone="income" />
+          <CompareRow label="Gastos" value={expense ?? 0} max={max} tone="expense" />
         </div>
       )}
-
-      {!loading && max > 0 ? (
-        <div className="chart-foot">
-          <span>Ingresos del periodo {formatMoney(income)}</span>
-          <span>Gastos del periodo {formatMoney(expense)}</span>
-        </div>
-      ) : null}
     </section>
   )
 }
 
-function barHeight(value: number, max: number) {
-  if (value <= 0 || max <= 0) return 0
-  return Math.max(4, Math.round((value / max) * 100))
+function CompareRow({
+  label,
+  value,
+  max,
+  tone,
+}: {
+  label: string
+  value: number
+  max: number
+  tone: 'income' | 'expense'
+}) {
+  const width = value <= 0 || max <= 0 ? 0 : Math.max(4, Math.round((value / max) * 100))
+
+  return (
+    <div className="compare-row">
+      <div className="compare-label">
+        <i className={`swatch swatch--${tone}`} aria-hidden="true" />
+        <Label>{label}</Label>
+      </div>
+      <div className="compare-track" aria-hidden="true">
+        <div className={`compare-fill compare-fill--${tone}`} style={{ width: `${width}%` }} />
+      </div>
+      <Amount value={value} tone={tone} size="row" />
+    </div>
+  )
 }
