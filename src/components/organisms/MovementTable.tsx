@@ -1,16 +1,78 @@
-import type { Transaction } from '../../api.ts'
-import { formatLedgerDate } from '../../lib/format.ts'
+import { cloneElement, isValidElement, useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactElement, type ReactNode } from 'react'
+import type { Transaction, TransactionType, UpdateTransaction } from '../../api.ts'
+import { ACCOUNTS, categoriesFor, isKnownAccount, withCurrent } from '../../lib/catalog.ts'
+import { formatLedgerDate, formatSignedMoney } from '../../lib/format.ts'
 import { Amount } from '../atoms/Amount.tsx'
+import { Button } from '../atoms/Button.tsx'
 
 export function MovementTable({
   transactions,
   loading,
   error,
+  onUpdate,
+  onDelete,
 }: {
   transactions: Transaction[]
   loading: boolean
   error: string | null
+  onUpdate: (id: string, transaction: UpdateTransaction) => Promise<void>
+  onDelete: (id: string) => Promise<void>
 }) {
+  const [editing, setEditing] = useState<Transaction | null>(null)
+  const [deleting, setDeleting] = useState<Transaction | null>(null)
+  const [pending, setPending] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const mounted = useRef(true)
+
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+
+  async function save(transaction: UpdateTransaction) {
+    if (!editing) return
+    setPending(true)
+    setActionError(null)
+    try {
+      await onUpdate(editing.id, transaction)
+      if (mounted.current) setEditing(null)
+    } catch (cause) {
+      if (mounted.current) setActionError(messageFrom(cause, 'No se pudo guardar el movimiento.'))
+    } finally {
+      if (mounted.current) setPending(false)
+    }
+  }
+
+  async function remove() {
+    if (!deleting) return
+    setPending(true)
+    setActionError(null)
+    try {
+      await onDelete(deleting.id)
+      if (mounted.current) setDeleting(null)
+    } catch (cause) {
+      if (mounted.current) setActionError(messageFrom(cause, 'No se pudo eliminar el movimiento.'))
+    } finally {
+      if (mounted.current) setPending(false)
+    }
+  }
+
+  const locked = pending || editing !== null || deleting !== null
+
+  function openEditor(transaction: Transaction) {
+    setActionError(null)
+    setDeleting(null)
+    setEditing(transaction)
+  }
+
+  function openDelete(transaction: Transaction) {
+    setActionError(null)
+    setEditing(null)
+    setDeleting(transaction)
+  }
+
   return (
     <section className="card ledger" aria-label="Movimientos">
       <div className="ledger-head">
@@ -29,16 +91,21 @@ export function MovementTable({
           <table>
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Descripción</th>
-                <th>Cuenta</th>
-                <th className="num">Importe</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Cuenta</th>
+                <th className="num" scope="col">
+                  Importe
+                </th>
+                <th className="ledger-actions" scope="col">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4}>Cargando movimientos.</td>
+                  <td colSpan={5}>Cargando movimientos.</td>
                 </tr>
               ) : (
                 transactions.map((transaction) => {
@@ -53,6 +120,19 @@ export function MovementTable({
                       <td className="ledger-account">{transaction.account}</td>
                       <td className="num">
                         <Amount value={transaction.amount} tone={transaction.type} size="row" signed />
+                      </td>
+                      <td className="ledger-actions">
+                        <Button type="button" disabled={locked} onClick={() => openEditor(transaction)}>
+                          Editar
+                        </Button>
+                        <Button
+                          type="button"
+                          className="button--danger"
+                          disabled={locked}
+                          onClick={() => openDelete(transaction)}
+                        >
+                          Eliminar
+                        </Button>
                       </td>
                     </tr>
                   )
@@ -70,11 +150,289 @@ export function MovementTable({
           </span>
         </div>
       ) : null}
+
+      {editing ? (
+        <EditDialog
+          key={editing.id}
+          transaction={editing}
+          pending={pending}
+          error={actionError}
+          onClose={() => {
+            if (pending) return
+            setActionError(null)
+            setEditing(null)
+          }}
+          onSave={save}
+        />
+      ) : null}
+
+      {deleting ? (
+        <DeleteDialog
+          transaction={deleting}
+          pending={pending}
+          error={actionError}
+          onClose={() => {
+            if (pending) return
+            setActionError(null)
+            setDeleting(null)
+          }}
+          onConfirm={remove}
+        />
+      ) : null}
     </section>
   )
+}
+
+function EditDialog({
+  transaction,
+  pending,
+  error,
+  onClose,
+  onSave,
+}: {
+  transaction: Transaction
+  pending: boolean
+  error: string | null
+  onClose: () => void
+  onSave: (transaction: UpdateTransaction) => void
+}) {
+  const [draft, setDraft] = useState(() => draftFrom(transaction))
+  const [localError, setLocalError] = useState<string | null>(null)
+  const formError = localError ?? error
+
+  function changeType(type: TransactionType) {
+    setDraft((current) => {
+      const categories = categoriesFor(type)
+      const category = categories.includes(current.category) ? current.category : (categories[0] ?? current.category)
+      return { ...current, type, category }
+    })
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const parsed = parseDraft(draft, transaction)
+    if (typeof parsed === 'string') {
+      setLocalError(parsed)
+      return
+    }
+    setLocalError(null)
+    if (Object.keys(parsed).length === 0) {
+      onClose()
+      return
+    }
+    onSave(parsed)
+  }
+
+  const categories = withCurrent(categoriesFor(draft.type), draft.category)
+  const accounts = withCurrent(ACCOUNTS, draft.account)
+
+  return (
+    <Modal title="Editar movimiento" pending={pending} onClose={onClose}>
+      <form className="dialog-form" onSubmit={submit}>
+        <div className="field-grid">
+          <Field label="Tipo">
+            <select
+              value={draft.type}
+              disabled={pending}
+              onChange={(event) => changeType(event.target.value as TransactionType)}
+            >
+              <option value="expense">Gasto</option>
+              <option value="income">Ingreso</option>
+            </select>
+          </Field>
+          <Field label="Importe">
+            <input
+              inputMode="numeric"
+              value={draft.amount}
+              disabled={pending}
+              onChange={(event) => setDraft({ ...draft, amount: event.target.value })}
+            />
+          </Field>
+          <Field label="Categoría">
+            <select
+              value={draft.category}
+              disabled={pending}
+              onChange={(event) => setDraft({ ...draft, category: event.target.value })}
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Cuenta">
+            <select
+              value={draft.account}
+              disabled={pending}
+              onChange={(event) => setDraft({ ...draft, account: event.target.value })}
+            >
+              {accounts.map((account) => (
+                <option key={account} value={account}>
+                  {account}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Fecha">
+            <input
+              type="date"
+              value={draft.date}
+              disabled={pending}
+              onChange={(event) => setDraft({ ...draft, date: event.target.value })}
+            />
+          </Field>
+          <Field label="Descripción">
+            <input
+              value={draft.description}
+              disabled={pending}
+              onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+            />
+          </Field>
+        </div>
+        {formError ? <p className="dialog-error">{formError}</p> : null}
+        <div className="dialog-actions">
+          <Button type="button" disabled={pending} onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" tone="primary" disabled={pending}>
+            {pending ? 'Guardando' : 'Guardar'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
+
+function DeleteDialog({
+  transaction,
+  pending,
+  error,
+  onClose,
+  onConfirm,
+}: {
+  transaction: Transaction
+  pending: boolean
+  error: string | null
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  const title = movementTitle(transaction)
+
+  return (
+    <Modal title="Eliminar movimiento" pending={pending} onClose={onClose}>
+      <p className="dialog-copy">
+        Se va a quitar {title} ({formatSignedMoney(transaction.amount, transaction.type)}) de la lista.
+      </p>
+      {error ? <p className="dialog-error">{error}</p> : null}
+      <div className="dialog-actions">
+        <Button type="button" disabled={pending} onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button type="button" className="button--danger" disabled={pending} onClick={onConfirm}>
+          {pending ? 'Eliminando' : 'Eliminar'}
+        </Button>
+      </div>
+    </Modal>
+  )
+}
+
+function Modal({
+  title,
+  pending,
+  onClose,
+  children,
+}: {
+  title: string
+  pending: boolean
+  onClose: () => void
+  children: ReactNode
+}) {
+  const titleId = useId()
+  const setDialog = useCallback((node: HTMLDialogElement | null) => {
+    if (node && !node.open) node.showModal()
+  }, [])
+
+  return (
+    <dialog
+      ref={setDialog}
+      className="dialog"
+      aria-labelledby={titleId}
+      aria-busy={pending}
+      onCancel={(event) => {
+        event.preventDefault()
+        if (!pending) onClose()
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !pending) onClose()
+      }}
+    >
+      <div className="dialog-body">
+        <h2 id={titleId}>{title}</h2>
+        {children}
+      </div>
+    </dialog>
+  )
+}
+
+function Field({ label, children }: { label: string; children: ReactElement<{ id?: string }> }) {
+  const id = useId()
+  return (
+    <div className="field">
+      <label className="label" htmlFor={id}>
+        {label}
+      </label>
+      {isValidElement(children) ? cloneElement(children, { id }) : children}
+    </div>
+  )
+}
+
+type Draft = {
+  description: string
+  category: string
+  account: string
+  type: TransactionType
+  amount: string
+  date: string
+}
+
+function draftFrom(transaction: Transaction): Draft {
+  return {
+    description: transaction.description,
+    category: transaction.category,
+    account: transaction.account,
+    type: transaction.type,
+    amount: String(transaction.amount),
+    date: transaction.date.slice(0, 10),
+  }
+}
+
+function parseDraft(draft: Draft, original: Transaction): UpdateTransaction | string {
+  const description = draft.description.trim()
+  const category = draft.category.trim()
+  const account = draft.account.trim()
+  const amount = Number(draft.amount)
+  if (!category || !account) return 'Elige categoría y cuenta.'
+  if (!Number.isInteger(amount) || amount <= 0) return 'El importe tiene que ser un entero mayor que cero.'
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return 'Elige una fecha válida.'
+  if (!categoriesFor(draft.type).includes(category)) return 'La categoría no corresponde a este tipo.'
+  if (!isKnownAccount(account)) return 'La cuenta no es válida.'
+
+  const changes: UpdateTransaction = {}
+  if (amount !== Number(original.amount)) changes.amount = amount
+  if (description !== original.description.trim()) changes.description = description
+  if (category !== original.category || draft.type !== original.type) changes.category = category
+  if (account !== original.account) changes.account = account
+  if (draft.type !== original.type) changes.type = draft.type
+  if (draft.date !== original.date.slice(0, 10)) changes.date = draft.date
+  return changes
 }
 
 function movementTitle(transaction: Transaction) {
   const description = transaction.description.trim()
   return description && description !== transaction.category ? description : transaction.category
+}
+
+function messageFrom(cause: unknown, fallback: string) {
+  return cause instanceof Error && cause.message ? cause.message : fallback
 }
