@@ -603,23 +603,49 @@
 .ledger-foot {
   margin-top: 0;
   border-top: 1px solid var(--color-border);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  font-size: var(--size-label);
-  font-weight: 600;
+  align-items: center;
+  font-size: var(--size-body-sm);
+  font-weight: 400;
+}
+
+.page--fill .ledger {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.page--fill .ledger-head,
+.page--fill .ledger-foot,
+.page--fill .ledger-empty {
+  flex-shrink: 0;
+}
+
+.page--fill .ledger-empty {
+  flex: 1;
 }
 
 .ledger-scroll {
-  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .ledger table {
   width: 100%;
-  border-collapse: collapse;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .ledger th {
-  padding: 0.75rem var(--space-lg);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.75rem 1rem;
   background: var(--color-surface-header);
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-muted);
@@ -629,10 +655,11 @@
   line-height: var(--line-label);
   text-align: left;
   text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .ledger td {
-  padding: 0.875rem var(--space-lg);
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
@@ -651,15 +678,39 @@
   font-variant-numeric: tabular-nums;
 }
 
+.ledger-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  min-width: 0;
+}
+
 .ledger-title {
   font-weight: 500;
 }
 
-.num {
-  text-align: right;
+.ledger-col-date {
+  width: 16%;
+  white-space: nowrap;
 }
 
-.chip {
+.ledger-col-detail {
+  width: 24%;
+}
+
+.ledger-col-account {
+  width: 18%;
+}
+
+.ledger-col-amount {
+  width: 18%;
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+}.chip {
   display: inline-block;
   padding: 0.125rem 0.5rem;
   border: 1px solid var(--color-border);
@@ -677,13 +728,65 @@
 }
 
 .ledger-actions {
-  width: 1%;
-  text-align: right;
+  width: 24%;
+  text-align: left;
   white-space: nowrap;
 }
 
 .ledger-actions .button + .button {
   margin-left: var(--space-sm);
+}
+
+.ledger-range {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pager-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.pager-button .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.pager-button:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.pager-button--current {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.pager-button--current:hover:not(:disabled) {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.pager-button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .dialog {
@@ -781,8 +884,7 @@
     display: none;
   }
 
-  .chart-foot,
-  .ledger-foot {
+  .chart-foot {
     flex-direction: column;
     align-items: flex-start;
   }

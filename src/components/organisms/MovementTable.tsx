@@ -4,6 +4,9 @@ import { ACCOUNTS, categoriesFor, isKnownAccount, withCurrent } from '../../lib/
 import { formatLedgerDate, formatSignedMoney } from '../../lib/format.ts'
 import { Amount } from '../atoms/Amount.tsx'
 import { Button } from '../atoms/Button.tsx'
+import { Icon } from '../atoms/Icon.tsx'
+
+const pageSize = 8
 
 export function MovementTable({
   transactions,
@@ -22,7 +25,13 @@ export function MovementTable({
   const [deleting, setDeleting] = useState<Transaction | null>(null)
   const [pending, setPending] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
   const mounted = useRef(true)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const pageCount = Math.max(1, Math.ceil(transactions.length / pageSize))
+  const currentPage = Math.min(page, pageCount - 1)
+  const start = currentPage * pageSize
+  const visible = transactions.slice(start, start + pageSize)
 
   useEffect(() => {
     mounted.current = true
@@ -73,6 +82,11 @@ export function MovementTable({
     setDeleting(transaction)
   }
 
+  function showPage(next: number) {
+    setPage(Math.min(Math.max(next, 0), pageCount - 1))
+    scrollRef.current?.scrollTo({ top: 0 })
+  }
+
   return (
     <section className="card ledger" aria-label="Movimientos">
       <div className="ledger-head">
@@ -87,14 +101,20 @@ export function MovementTable({
           {error ? 'No se pudo mostrar la lista.' : 'Todavía no hay movimientos en la lista.'}
         </p>
       ) : (
-        <div className="ledger-scroll">
+        <div className="ledger-scroll" ref={scrollRef}>
           <table>
             <thead>
               <tr>
-                <th scope="col">Fecha</th>
-                <th scope="col">Descripción</th>
-                <th scope="col">Cuenta</th>
-                <th className="num" scope="col">
+                <th className="ledger-col-date" scope="col">
+                  Fecha
+                </th>
+                <th className="ledger-col-detail" scope="col">
+                  Descripción
+                </th>
+                <th className="ledger-col-account" scope="col">
+                  Cuenta
+                </th>
+                <th className="num ledger-col-amount" scope="col">
                   Importe
                 </th>
                 <th className="ledger-actions" scope="col">
@@ -108,17 +128,19 @@ export function MovementTable({
                   <td colSpan={5}>Cargando movimientos.</td>
                 </tr>
               ) : (
-                transactions.map((transaction) => {
+                visible.map((transaction) => {
                   const title = movementTitle(transaction)
                   return (
                     <tr key={transaction.id}>
-                      <td className="ledger-date">{formatLedgerDate(transaction.date)}</td>
-                      <td>
-                        <div className="ledger-title">{title}</div>
-                        {title !== transaction.category ? <span className="chip">{transaction.category}</span> : null}
+                      <td className="ledger-date ledger-col-date">{formatLedgerDate(transaction.date)}</td>
+                      <td className="ledger-col-detail">
+                        <div className="ledger-main">
+                          <span className="ledger-title">{title}</span>
+                          {title !== transaction.category ? <span className="chip">{transaction.category}</span> : null}
+                        </div>
                       </td>
-                      <td className="ledger-account">{transaction.account}</td>
-                      <td className="num">
+                      <td className="ledger-account ledger-col-account">{transaction.account}</td>
+                      <td className="num ledger-col-amount">
                         <Amount value={transaction.amount} tone={transaction.type} size="row" signed />
                       </td>
                       <td className="ledger-actions">
@@ -145,9 +167,42 @@ export function MovementTable({
 
       {!loading && transactions.length > 0 ? (
         <div className="ledger-foot">
-          <span>
-            {transactions.length} {transactions.length === 1 ? 'movimiento' : 'movimientos'}
-          </span>
+          <p className="ledger-range">
+            {start + 1}–{start + visible.length} de {transactions.length}{' '}
+            {transactions.length === 1 ? 'movimiento' : 'movimientos'}
+          </p>
+          <nav className="pager" aria-label="Paginación">
+            <button
+              type="button"
+              className="pager-button"
+              aria-label="Página anterior"
+              disabled={currentPage === 0}
+              onClick={() => showPage(currentPage - 1)}
+            >
+              <Icon name="left" />
+            </button>
+            {pageNumbers(currentPage, pageCount).map((index) => (
+              <button
+                key={index}
+                type="button"
+                className={index === currentPage ? 'pager-button pager-button--current' : 'pager-button'}
+                aria-label={`Página ${index + 1}`}
+                aria-current={index === currentPage ? 'page' : undefined}
+                onClick={() => showPage(index)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="pager-button"
+              aria-label="Página siguiente"
+              disabled={currentPage >= pageCount - 1}
+              onClick={() => showPage(currentPage + 1)}
+            >
+              <Icon name="right" />
+            </button>
+          </nav>
         </div>
       ) : null}
 
@@ -426,6 +481,13 @@ function parseDraft(draft: Draft, original: Transaction): UpdateTransaction | st
   if (draft.type !== original.type) changes.type = draft.type
   if (draft.date !== original.date.slice(0, 10)) changes.date = draft.date
   return changes
+}
+
+function pageNumbers(current: number, count: number) {
+  const width = 5
+  if (count <= width) return Array.from({ length: count }, (_, index) => index)
+  const start = Math.min(Math.max(current - 2, 0), count - width)
+  return Array.from({ length: width }, (_, index) => start + index)
 }
 
 function movementTitle(transaction: Transaction) {
