@@ -8,7 +8,7 @@ export function MovimientosPage({ transactions, loading, error, updateTransactio
   })
 
   return (
-    <div className="page">
+    <div className="page page--fill">
       <header className="page-head">
         <h1>Movimientos</h1>
       </header>
