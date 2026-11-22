@@ -25,6 +25,32 @@ export function bogotaYearMonth(now = new Date()) {
   return { year: Number(year), month: Number(month) }
 }
 
+export function monthBounds(offset = 0, now = new Date()) {
+  const current = bogotaYearMonth(now)
+  const anchor = new Date(Date.UTC(current.year, current.month - 1 + offset, 1))
+  const year = anchor.getUTCFullYear()
+  const month = anchor.getUTCMonth()
+  const start = new Date(Date.UTC(year, month, 1))
+  const end = new Date(Date.UTC(year, month + 1, 0))
+  return { startDate: isoUtcDate(start), endDate: isoUtcDate(end) }
+}
+
+export function todayIso(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
+}
+
+function isoUtcDate(date: Date) {
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function currentMonthTitle(now = new Date()) {
   const label = new Intl.DateTimeFormat('es-CO', {
     timeZone: 'America/Bogota',

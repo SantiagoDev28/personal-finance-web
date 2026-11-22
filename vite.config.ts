@@ -7,6 +7,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/transactions': 'http://localhost:3000',
+      '/card-payments': 'http://localhost:3000',
+      '/accounts': 'http://localhost:3000',
     },
   },
 })

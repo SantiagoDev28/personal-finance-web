@@ -1,24 +1,25 @@
 import { Amount } from '../atoms/Amount.tsx'
 import { Label } from '../atoms/Label.tsx'
 
+export type FlowTone = 'income' | 'expense' | 'payment'
+
 export function FlowChart({
-  income,
-  expense,
+  rows,
   loading,
   error,
 }: {
-  income?: number
-  expense?: number
+  rows: { label: string; value: number; tone: FlowTone }[]
   loading: boolean
   error: string | null
 }) {
-  const max = Math.max(income ?? 0, expense ?? 0, 0)
+  const max = Math.max(...rows.map((row) => row.value), 0)
+  const empty = rows.every((row) => row.value === 0)
 
   return (
-    <section className="card chart" aria-label="Ingresos y gastos del mes">
+    <section className="card chart" aria-label="Ingresos, gastos y abonos del mes">
       <div className="chart-head">
         <div>
-          <h2>Ingresos y gastos</h2>
+          <h2>Ingresos, gastos y abonos</h2>
           <p>Mes actual</p>
         </div>
       </div>
@@ -27,12 +28,13 @@ export function FlowChart({
         <p className="ledger-empty">Cargando el mes.</p>
       ) : error ? (
         <p className="ledger-empty">No se pudo mostrar el mes.</p>
-      ) : max === 0 ? (
+      ) : empty ? (
         <p className="ledger-empty">Todavía no hay movimientos en este mes.</p>
       ) : (
         <div className="compare">
-          <CompareRow label="Ingresos" value={income ?? 0} max={max} tone="income" />
-          <CompareRow label="Gastos" value={expense ?? 0} max={max} tone="expense" />
+          {rows.map((row) => (
+            <CompareRow key={row.label} label={row.label} value={row.value} max={max} tone={row.tone} />
+          ))}
         </div>
       )}
     </section>
@@ -48,7 +50,7 @@ function CompareRow({
   label: string
   value: number
   max: number
-  tone: 'income' | 'expense'
+  tone: FlowTone
 }) {
   const width = value <= 0 || max <= 0 ? 0 : Math.max(4, Math.round((value / max) * 100))
 
@@ -61,7 +63,7 @@ function CompareRow({
       <div className="compare-track" aria-hidden="true">
         <div className={`compare-fill compare-fill--${tone}`} style={{ width: `${width}%` }} />
       </div>
-      <Amount value={value} tone={tone} size="row" />
+      <Amount value={value} tone={tone === 'payment' ? 'expense' : tone} size="row" />
     </div>
   )
 }
