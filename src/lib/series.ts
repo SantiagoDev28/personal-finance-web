@@ -73,38 +73,7 @@ export function categoryExpenses(transactions: Transaction[], now = new Date()):
     .sort((a, b) => b.amount - a.amount || a.category.localeCompare(b.category, 'es'))
 }
 
-export function monthTotals(transactions: Transaction[], now = new Date()) {
-  const current = bogotaYearMonth(now)
-  const key = `${current.year}-${String(current.month).padStart(2, '0')}`
-  let income = 0
-  let expense = 0
-
-  for (const transaction of transactions) {
-    if (transaction.date.slice(0, 7) !== key) continue
-    if (transaction.type === 'income') income += transaction.amount
-    else expense += transaction.amount
-  }
-
-  return { income, expense, balance: income - expense }
-}
-
-export function balanceDelta(transactions: Transaction[], now = new Date()) {
-  const [previousKey, currentKey] = lastMonths(2, now)
-  let previous = 0
-  let current = 0
-  let previousCount = 0
-
-  for (const transaction of transactions) {
-    const key = transaction.date.slice(0, 7)
-    const signed = transaction.type === 'expense' ? -transaction.amount : transaction.amount
-    if (key === previousKey) {
-      previous += signed
-      previousCount += 1
-    } else if (key === currentKey) {
-      current += signed
-    }
-  }
-
-  if (previousCount === 0 || previous === 0) return null
+export function balanceDelta(current: number, previous: number) {
+  if (previous === 0) return null
   return { percent: ((current - previous) / Math.abs(previous)) * 100 }
 }

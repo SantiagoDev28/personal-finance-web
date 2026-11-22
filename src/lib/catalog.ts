@@ -1,6 +1,10 @@
 import type { TransactionType } from '../api.ts'
 
-export const ACCOUNTS = ['Efectivo', 'Nequi', 'Nu', 'Daviplata', 'Tarjeta crédito'] as const
+export const CARD_ACCOUNT = 'Tarjeta crédito'
+
+export const CASH_ACCOUNTS = ['Efectivo', 'Nequi', 'Nu', 'Daviplata'] as const
+
+export const ACCOUNTS = [...CASH_ACCOUNTS, CARD_ACCOUNT] as const
 
 export const EXPENSE_CATEGORIES = [
   'Alimentación',
@@ -28,4 +32,8 @@ export function withCurrent(options: readonly string[], current: string) {
 
 export function isKnownAccount(value: string) {
   return (ACCOUNTS as readonly string[]).includes(value)
+}
+
+export function isCashAccount(value: string) {
+  return (CASH_ACCOUNTS as readonly string[]).includes(value)
 }

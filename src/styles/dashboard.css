@@ -123,6 +123,17 @@
   padding: var(--space-lg);
 }
 
+.summary-note {
+  color: var(--color-text-muted);
+  font-size: var(--size-body-sm);
+}
+
+@container (max-width: 52rem) {
+  .summary-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .page-head-copy {
   display: flex;
   flex-direction: column;
@@ -317,6 +328,24 @@
   letter-spacing: -0.01em;
 }
 
+.ledger-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.ledger-filter {
+  height: 2rem;
+  max-width: 100%;
+  padding: 0 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
 .chart-head p,
 .ledger-head p,
 .chart-foot,
@@ -349,6 +378,10 @@
 
 .swatch--expense {
   background: var(--color-expense);
+}
+
+.swatch--payment {
+  background: var(--color-button);
 }
 
 .swatch--1 {
@@ -504,7 +537,7 @@
 
 .compare-row {
   display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 9.5rem minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-md);
 }
@@ -533,6 +566,10 @@
 
 .compare-fill--expense {
   background: var(--color-expense);
+}
+
+.compare-fill--payment {
+  background: var(--color-button);
 }
 
 .chart-plot {
@@ -847,6 +884,10 @@
   flex-direction: column;
   gap: var(--space-xs);
   min-width: 0;
+}
+
+.field--wide {
+  grid-column: 1 / -1;
 }
 
 .field input,
